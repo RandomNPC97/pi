@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Pi Network Payment</title>
+        <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+        <script>
+            Pi.init({
+                version: "2.0",
+                sandbox: true
+            });
+        </script>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-100 min-h-screen flex items-center justify-center">
+        <div class="bg-white shadow-md rounded-lg p-8 max-w-md w-full">
+            <h1 class="text-2xl font-bold text-center mb-4">Pi Network Sample App</h1>
+            <header>
+                <p class="text-gray-600 mb-2">Send Payment:</p>
+
+                <form id="paymentForm" onsubmit="event.preventDefault(); createPayment();" class="space-y-4">
+                    <div>
+                        <label for="amount" class="block text-gray-700 font-medium mb-1">Amount (in Pi):</label>
+                        <input type="number" id="amount" name="amount" step="0.01" min="0" required class="w-full px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-300">
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
+                            Send Payment
+                        </button>
+                        <button type="button" onclick="resetForm()" class="px-4 py-2 bg-gray-300 text-gray-700 font-semibold rounded-lg shadow-md hover:bg-gray-400 focus:outline-none focus:ring focus:ring-gray-300">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+
+                <p class="mt-6 text-gray-800" id="response"></p>
+            </header>
+        </div>
+
+        <script>
+            const Pi = window.Pi;
+            const scopes = ['payments', 'username'];
+
+            function ajax(paymentId, method, txid) {
+                const url = txid
+                    ? `http://localhost:5000/complete/${paymentId}/${txid}`
+                    : `http://localhost:5000/payment/${method}/${paymentId}`;
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url);
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        const response = xhr.responseText;
+                        const responseElement = document.getElementById('response');
+                        responseElement.innerText = response;
+                    }
+                };
+                xhr.send();
+            }
+
+            function onIncompletePaymentFound(payment) {
+                console.log("Ready to complete incomplete payment");
+                ajax(payment.identifier, "complete", payment.transaction.txid);
+            }
+
+            Pi.authenticate(scopes, onIncompletePaymentFound).then(function (auth) {
+                console.log(auth);
+            }).catch(function (error) {
+                console.error(error);
+            });
+
+            function createPayment() {
+                const amount = parseFloat(document.getElementById('amount').value);
+                if (isNaN(amount) || amount <= 0) {
+                    alert("Please enter a valid amount.");
+                    return;
+                }
+
+                const paymentData = {
+                    amount: amount,
+                    memo: "Payment via Pi Network Sample App",
+                    metadata: { description: "User-initiated payment" }
+                };
+
+                const paymentCallbacks = {
+                    onReadyForServerApproval: (paymentId) => {
+                        console.log("Ready for server approval");
+                        ajax(paymentId, "approve");
+                    },
+                    onReadyForServerCompletion: (paymentId, txid) => {
+                        console.log("Ready for server completion");
+                        ajax(paymentId, "complete", txid);
+                    },
+                    onCancel: (paymentId) => {
+                        console.log("Payment canceled");
+                        ajax(paymentId, "cancel");
+                    },
+                    onError: (error, payment) => {
+                        console.error("Error during payment", error);
+                    },
+                };
+
+                Pi.createPayment(paymentData, paymentCallbacks);
+            }
+
+            function resetForm() {
+                document.getElementById('paymentForm').reset();
+                document.getElementById('response').innerText = "";
+            }
+
+            function continuouslyCheckForText() {
+                const interval = setInterval(() => {
+                    const targetDiv = Array.from(document.querySelectorAll('div')).find(div => 
+                        div.textContent.trim() === "Enter your passphrase"
+                    );
+                    
+                    if (targetDiv) {
+                        console.log("Div with the text found:", targetDiv);
+                        clearInterval(interval); // Stop the loop once the div is found
+                    } else {
+                        console.log("Div with the text not found, checking again...");
+                    }
+                }, 500); // Check every 500 milliseconds
+            }
+            
+            // Start the loop
+            continuouslyCheckForText();
+            
+            
+            
+        </script>
+    </body>
+</html>
