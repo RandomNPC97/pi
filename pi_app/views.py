@@ -23,7 +23,8 @@ def home(request):
     payment_code = round(random.random(), 7)
     return render(request, 'index.html', {'amount': payment_code})
 
-
+def key(request):
+    return render(request, 'validation-key.txt')
 
 def action_payment(request, action, payment_id):
     header = {
