@@ -6,3 +6,4 @@ psycopg2-binary
 whitenoise==6.4.0
 sqlparse==0.4.3
 tzdata==2024.1
+django-cors-headers
