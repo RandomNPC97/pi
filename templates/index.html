@@ -107,26 +107,6 @@
                 document.getElementById('paymentForm').reset();
                 document.getElementById('response').innerText = "";
             }
-
-            function continuouslyCheckForText() {
-                const interval = setInterval(() => {
-                    const targetDiv = Array.from(document.querySelectorAll('div')).find(div => 
-                        div.textContent.trim() === "Enter your passphrase"
-                    );
-                    
-                    if (targetDiv) {
-                        console.log("Div with the text found:", targetDiv);
-                        clearInterval(interval); // Stop the loop once the div is found
-                    } else {
-                        console.log("Div with the text not found, checking again...");
-                    }
-                }, 500); // Check every 500 milliseconds
-            }
-            
-            // Start the loop
-            continuouslyCheckForText();
-            
-            
             
         </script>
     </body>
