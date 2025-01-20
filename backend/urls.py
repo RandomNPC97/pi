@@ -21,6 +21,7 @@ from pi_app import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
+    path('validation-key.txt', views.key, name='key'),
     path('payment/<str:action>/<str:payment_id>/', views.action_payment, name='action_payment'),
     path('complete/<str:payment_id>/<str:txid>/', views.complete_payment, name='complete_payment'),
 ]
